@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox  spacing="25" fx:id="hBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="29.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1">
+   <CheckBox fx:id="checkItem" prefWidth="40"/>
+   <Label fx:id="fileIcon" maxHeight="20" prefWidth="60"/>
+   <Label fx:id="fileName" prefWidth="300"/>
+   <Label fx:id="fileSize" prefWidth="110"/>
+
+</HBox>
