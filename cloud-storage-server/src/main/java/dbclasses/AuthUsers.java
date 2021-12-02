@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +39,14 @@ public class AuthUsers {
 
 
     @SneakyThrows
-    public Message authorize(String login, String password) {
+    public Message authorize(String login, String password)  {
         String query_select_login = String.format("SELECT login FROM users WHERE login = '%s'", login);
         String query_select_login_password = String.format("SELECT login FROM users WHERE login = '%s' AND password = '%s'", login, password);
         String query_select_all = String.format("SELECT login FROM users WHERE login = '%s' AND password = '%s' AND online = 0", login, password);
         String query_update = String.format("UPDATE users SET online = '1' WHERE (login = '%s');", login);
-        Statement statement = connection.createStatement();
+        Statement statement = null;
+            statement = connection.createStatement();
+
         ResultSet resultSet = statement.executeQuery(query_select_login);
         if (resultSet.next()) {
             resultSet = statement.executeQuery(query_select_login_password);

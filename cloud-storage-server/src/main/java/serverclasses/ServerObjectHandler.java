@@ -7,6 +7,7 @@ import commonclasses.authmessages.SuccessfulAuth;
 import commonclasses.messages.*;
 import commonclasses.utils.FileInfo;
 import commonclasses.utils.FileUtils;
+import commonclasses.warningmessages.WarningMessage;
 import dbclasses.AuthUsers;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -41,9 +42,9 @@ public class ServerObjectHandler extends SimpleChannelInboundHandler<Message> {
         authUsers = AuthUsers.getInstance();
         fileUtils = FileUtils.getInstance();
         List<String> authorizedUsers = authUsers.getAuthorizedUsers();
-        for (String authorizedUser : authorizedUsers) {
+        /*for (String authorizedUser : authorizedUsers) {
             log.debug("USERS {}", authorizedUser);
-        }
+        }*/
 
     }
 
@@ -90,23 +91,40 @@ public class ServerObjectHandler extends SimpleChannelInboundHandler<Message> {
             case CREATE_DIR:
                 createDir(msg);
                 break;
+            case RENAME_REQUEST:
+                renameFile(msg);
+                break;
 
 
         }
     }
 
-    @SneakyThrows
+    private void renameFile(Message message) throws IOException {
+        RenameRequest msg = (RenameRequest)message;
+        Path renamePath = Paths.get(currentDir.toAbsolutePath().toString(), msg.getFileNameOld());
+        Files.move(renamePath, renamePath.resolveSibling(msg.getFileNameNew()));
+    }
+
+
     private void createDir(Message message) {
         CreateDirRequest msg = (CreateDirRequest)message;
         Path createDirPath = Paths.get(currentDir.toAbsolutePath().toString(), msg.getDirName());
-        Files.createDirectory(createDirPath);
+        try {
+            Files.createDirectory(createDirPath);
+        } catch (IOException e) {
+            sc.writeAndFlush(new WarningMessage("Папка не создана"));
+        }
     }
 
-    @SneakyThrows
+
     private void deleteFile(Message message) {
         DeleteRequest msg = (DeleteRequest)message;
         Path deletePath = Paths.get(currentDir.toAbsolutePath().toString(),msg.getFileName());
-        Files.delete(deletePath);
+        try {
+            Files.delete(deletePath);
+        } catch (IOException e) {
+            sc.writeAndFlush(new WarningMessage("Файл не удален"));
+        }
     }
 
     private void registration(Message message) {
@@ -114,7 +132,7 @@ public class ServerObjectHandler extends SimpleChannelInboundHandler<Message> {
         if (authUsers.register(msg.getLogin(), msg.getPassword())) {
             sc.writeAndFlush(new RegisterSuccessful());
         } else {
-
+            //TODO
         }
 
     }
@@ -168,7 +186,6 @@ public class ServerObjectHandler extends SimpleChannelInboundHandler<Message> {
 
     private void saveFilePart(Message message) {
 
-        //FilePart msg = (FilePart) message;
         NextFilePart msg = (NextFilePart) message;
 
 
@@ -230,7 +247,7 @@ public class ServerObjectHandler extends SimpleChannelInboundHandler<Message> {
                     watchKey.reset();
                 }
             } catch (Exception e) {
-                log.debug("E=", e);
+                log.error("E=", e);
             }
         });
         watchServe.setDaemon(true);
@@ -240,8 +257,8 @@ public class ServerObjectHandler extends SimpleChannelInboundHandler<Message> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        //  ctx.close();
-        log.debug("E serv = ", cause);
+        ctx.close();
+        log.error("E serv = ", cause);
     }
 }
 

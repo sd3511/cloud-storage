@@ -2,9 +2,11 @@ package commonclasses.utils;
 import lombok.Data;
 import lombok.SneakyThrows;
 
+import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 
 @Data
 public class FileInfo implements Serializable {
@@ -19,7 +21,17 @@ public class FileInfo implements Serializable {
     public FileInfo(Path path) {
         this.filename = path.getFileName().toString();
         this.isFolder = Files.isDirectory(path);
-        this.size = Files.size(path);
+        if (isFolder){
+           this.size =  Files.walk(path)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .mapToLong(File::length)
+                    .sum();
+        }
+        else {
+            this.size = Files.size(path);
+        }
+
         this.Chosen = false;
 
     }

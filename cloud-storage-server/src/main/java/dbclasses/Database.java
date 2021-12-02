@@ -22,7 +22,7 @@ public class Database {
                 Class.forName(DATABASE_DRIVER);
                 connection = DriverManager.getConnection(CONNECTION_URL, USERNAME, PASSWORD);
             } catch (ClassNotFoundException | SQLException e) {
-               log.debug("e= ",e);
+               log.error("e= ",e);
             }
         }
         return connection;

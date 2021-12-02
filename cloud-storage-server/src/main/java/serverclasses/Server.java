@@ -37,13 +37,13 @@ public class Server {
                             );
                         }
                     });
-            ChannelFuture channelFuture = bootstrap.bind(8188).sync();
+            ChannelFuture channelFuture = bootstrap.bind(8189).sync();
             AuthUsers.getInstance().disconnectAll();
-            log.debug("Server started");
+            log.info("Server started");
             channelFuture.channel().closeFuture().sync();
 
         } catch (Exception e) {
-            log.debug("E=", e);
+            log.error("E=", e);
         } finally {
 
             hard.shutdownGracefully();

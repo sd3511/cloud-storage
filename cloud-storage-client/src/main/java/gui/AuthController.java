@@ -17,10 +17,12 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lk.vivoxalabs.scenemanager.SceneManager;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-
+@Slf4j
 public class AuthController implements Initializable {
 
 
@@ -35,11 +37,10 @@ public class AuthController implements Initializable {
         return cl;
     }
 
-    @SneakyThrows
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         network = new Network(this);
-
 
     }
 
@@ -49,10 +50,15 @@ public class AuthController implements Initializable {
 
     }
 
-    @SneakyThrows
+
     public void register(ActionEvent actionEvent) {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("register.fxml"));
-        Parent parent = fxmlLoader.load();
+        Parent parent = null;
+        try {
+            parent = fxmlLoader.load();
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
         RegisterController reg = fxmlLoader.getController();
         Scene scene = new Scene(parent, 200, 200);
         stageReg = new Stage();
@@ -66,10 +72,15 @@ public class AuthController implements Initializable {
 
     }
 
-    @SneakyThrows
+
     public void switchWindow() {
         loader = new FXMLLoader(getClass().getResource("cloudArea.fxml"));
-        Parent parent = loader.load();
+        Parent parent = null;
+        try {
+            parent = loader.load();
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
         cl = loader.getController();
         cl.setLogin(login.getText());
         cl.setNetwork(network);
@@ -88,6 +99,7 @@ public class AuthController implements Initializable {
         Platform.runLater(()->{
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setContentText("Регистрация успешна");
+            
 
             alert.setOnCloseRequest(event -> stageReg.close());
             alert.show();

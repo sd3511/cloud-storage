@@ -58,11 +58,11 @@ public class Network {
 
                             }
                         });
-                ChannelFuture channelFuture = bootstrap.connect("localhost", 8188).sync();
+                ChannelFuture channelFuture = bootstrap.connect("localhost", 8189).sync();
                 channelFuture.channel().closeFuture().sync();
 
             } catch (Exception e) {
-                log.debug("E = ", e);
+                log.error("connection failed: ", e);
             } finally {
 
                 worker.shutdownGracefully();
@@ -91,7 +91,6 @@ public class Network {
 
     public void signIn(String text, String text1) {
         socketChannel.writeAndFlush(new SignInMessage(text, text1));
-        //  socketChannel.writeAndFlush(new DownloadRequest(text));
     }
 
     public void send(Message message) {

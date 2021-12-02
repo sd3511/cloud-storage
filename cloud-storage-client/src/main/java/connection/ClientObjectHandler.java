@@ -2,6 +2,7 @@ package connection;
 
 
 import commonclasses.messages.*;
+import commonclasses.warningmessages.WarningMessage;
 import commonclasses.warningmessages.WarningMessageAuth;
 import gui.AuthController;
 import gui.CloudAreaController;
@@ -31,14 +32,11 @@ public class ClientObjectHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         sc = (SocketChannel) ctx.channel();
-
-
-
-
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
+        log.info("received a message from the server " + msg.getType().toString());
         switch (msg.getType()) {
 
             case LIST_REQUEST:
@@ -61,13 +59,22 @@ public class ClientObjectHandler extends SimpleChannelInboundHandler<Message> {
                 registerOk();
                 break;
             case WARNING_AUTH:
+                warningAuth(msg);
+                break;
+            case WARNING_MESSAGE:
                 warningHandle(msg);
+                break;
         }
 
 
     }
 
     private void warningHandle(Message message) {
+        WarningMessage msg = (WarningMessage)message;
+        cl.showWarningMsg(msg.getText());
+    }
+
+    private void warningAuth(Message message) {
         WarningMessageAuth msg = (WarningMessageAuth)message;
         authController.alertWarning(msg.getWarningMessage());
     }
@@ -85,16 +92,18 @@ public class ClientObjectHandler extends SimpleChannelInboundHandler<Message> {
     }
 
     private void sendNextPart(Message message) {
-        NextFilePartToClient msg = (NextFilePartToClient) message;
 
+        NextFilePartToClient msg = (NextFilePartToClient) message;
+        log.info("sending the next part of the file " + msg.getFileName());
         Path path = Paths.get(cl.getCurrentDir().toString(), msg.getFileName());
         sc.writeAndFlush(cl.getNetwork().getFileUtils().sendNextPart(msg, path));
     }
 
 
     private void saveFilePart(Message message) {
-        NextFilePart msg = (NextFilePart) message;
 
+        NextFilePart msg = (NextFilePart) message;
+        log.info("saving the next part of the file " + msg.getFileName());
         Path savePath = Paths.get(cl.getCurrentDir().toString(), msg.getFileName());
         int part = msg.getPart();
         int allParts = msg.getAllParts();
@@ -113,6 +122,7 @@ public class ClientObjectHandler extends SimpleChannelInboundHandler<Message> {
 
     private void saveFile(Message message) {
         FullFile msg = (FullFile) message;
+        log.info("saving full file " + msg.getFileName());
         Path savePath = Paths.get(cl.getCurrentDir().toString(), msg.getFileName());
         cl.getNetwork().getFileUtils().saveFile(savePath, msg.getData());
     }

@@ -16,7 +16,7 @@ import java.nio.file.StandardOpenOption;
 
 @Slf4j
 public class FileUtils {
-    static int iq = 0;
+
     public final long SIZE_LIMIT = 1024 * 1024;
     private static FileUtils fileUtils;
 
@@ -47,30 +47,14 @@ public class FileUtils {
     @SneakyThrows
     public boolean savePart(Path path, byte[] data) {
         Files.write(path, data, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        log.debug("save {}", iq++);
+
         return true;
 
     }
 
     @SneakyThrows
     private void sendFileInParts(Path path, SocketChannel sc) {
-        /*int iter = (int) ((Files.size(path) + SIZE_LIMIT) / SIZE_LIMIT);
-        InputStream is = Files.newInputStream(path);
-        byte[] buf = new byte[(int) SIZE_LIMIT];
-        byte[] lastBuf = new byte[(int) (Files.size(path) % SIZE_LIMIT)];
-        for (int i = 0; i < iter; i++) {
-            if ((i + 1) == iter) {
-                is.read(lastBuf);
-                sc.writeAndFlush(new FilePart(path.getFileName().toString(), lastBuf));
-                is.close();
-            }
-            else {
-                is.read(buf);
-                sc.writeAndFlush(new FilePart(path.getFileName().toString(), buf));
-                log.debug("iter {}", i);
-                //Thread.sleep(100);
-            }
-        }*/
+
         int iter = (int) ((Files.size(path) + SIZE_LIMIT) / SIZE_LIMIT);
         int lastPartSize = (int) (Files.size(path) % SIZE_LIMIT);
         String fileName = path.getFileName().toString();

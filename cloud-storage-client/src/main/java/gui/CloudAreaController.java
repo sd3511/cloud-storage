@@ -1,9 +1,6 @@
 package gui;
 
-import commonclasses.messages.CreateDirRequest;
-import commonclasses.messages.DeleteRequest;
-import commonclasses.messages.FolderRequest;
-import commonclasses.messages.ListRequest;
+import commonclasses.messages.*;
 import commonclasses.utils.FileInfo;
 import connection.Network;
 import javafx.application.Platform;
@@ -14,7 +11,6 @@ import javafx.event.EventHandler;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.*;
@@ -32,25 +28,21 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class CloudAreaController implements Initializable {
     public Button btnSend;
-    public Button btnCut;
-    public Button btnCopy;
-    public Button btnPaste;
     public Button btnDownload;
-    public Label currentPathClient;
-    public Label currentPathServer;
     public ListView<FileInfo> clientListView;
     public ListView<FileInfo> serverListView;
-    public ProgressBar progressBar;
     public Button btnUpClient;
     public Button btnUpServer;
+    public Button btnDelete;
+    public Button btnRename;
+    public Button btnCreateDir;
     private Path clientDir;
     private Path currentDir;
     private Network network;
@@ -68,8 +60,8 @@ public class CloudAreaController implements Initializable {
         setPropertiesClientListView();
         fileInfo(currentDir);
         watcherDir();
-        register = currentDir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE);
-        progressBar = new ProgressBar(0);
+        register = currentDir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
+                StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
 
     }
 
@@ -146,7 +138,8 @@ public class CloudAreaController implements Initializable {
                     register.cancel();
                     currentDir = Paths.get(currentDir.toAbsolutePath().toString(), clientListView.getSelectionModel().getSelectedItem().getFilename());
                     try {
-                        register = currentDir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE);
+                        register = currentDir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
+                                StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -215,10 +208,29 @@ public class CloudAreaController implements Initializable {
             }
         });
         menuItem3.setOnAction(event -> {
-            try {
-                Files.delete(Paths.get(currentDir.toAbsolutePath().toString(), clientListView.getSelectionModel().getSelectedItem().getFilename().toString()));
-            } catch (IOException e) {
-                e.printStackTrace();
+            List<String> collect = clientListView.getSelectionModel().getSelectedItems()
+                    .stream()
+                    .map(FileInfo::getFilename)
+                    .collect(Collectors.toList());
+            for (String s : collect) {
+                Path pathToDelete = Paths.get(currentDir.toAbsolutePath().toString(), s);
+                if (Files.isDirectory(pathToDelete)) {
+                    try {
+                        Files.walk(pathToDelete)
+                                .sorted(Comparator.reverseOrder())
+                                .map(Path::toFile)
+                                .forEach(File::delete);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                try {
+                    Files.delete(pathToDelete);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
             }
         });
         menuItem2.setOnAction(event -> sendFile());
@@ -227,7 +239,6 @@ public class CloudAreaController implements Initializable {
             TextField field = new TextField();
 
             newFolderStage.setScene(new Scene(field));
-            //  newFolderStage.initStyle(StageStyle.UNDECORATED);
             newFolderStage.initModality(Modality.WINDOW_MODAL);
             newFolderStage.initOwner(Start.stage);
             field.setOnAction(event1 -> {
@@ -257,7 +268,10 @@ public class CloudAreaController implements Initializable {
         });
 
         menuItem2.setOnAction(event -> {
-            List<String> collect = serverListView.getSelectionModel().getSelectedItems().stream().map(x -> x.getFilename()).collect(Collectors.toList());
+            List<String> collect = serverListView.getSelectionModel().getSelectedItems()
+                    .stream()
+                    .map(FileInfo::getFilename)
+                    .collect(Collectors.toList());
             for (String s : collect) {
                 network.send(new DeleteRequest(s));
             }
@@ -267,7 +281,6 @@ public class CloudAreaController implements Initializable {
             TextField field = new TextField();
 
             newFolderStage.setScene(new Scene(field));
-            //  newFolderStage.initStyle(StageStyle.UNDECORATED);
             newFolderStage.initModality(Modality.WINDOW_MODAL);
             newFolderStage.initOwner(Start.stage);
             field.setOnAction(event1 -> {
@@ -326,7 +339,7 @@ public class CloudAreaController implements Initializable {
                     watchKey.reset();
                 }
             } catch (Exception e) {
-                log.debug("E=", e);
+                log.error("Watcher error: ", e);
             }
         });
         watchClient.setDaemon(true);
@@ -413,7 +426,7 @@ public class CloudAreaController implements Initializable {
         });
         clientListView.setOnDragOver(event -> {
             if (event.getGestureSource() != serverListView) {
-                event.acceptTransferModes(TransferMode.NONE);
+                event.acceptTransferModes(TransferMode.COPY);
             } else {
                 event.acceptTransferModes(TransferMode.COPY);
                 clientListView.setStyle("-fx-opacity: 0.3; -fx-background-color: white;");
@@ -434,6 +447,113 @@ public class CloudAreaController implements Initializable {
     }
 
 
+    public void deleteFile(ActionEvent actionEvent) {
+        if (clientListView.getSelectionModel().getSelectedItem() != null) {
+            List<String> collect = clientListView.getSelectionModel().getSelectedItems()
+                    .stream()
+                    .map(FileInfo::getFilename)
+                    .collect(Collectors.toList());
+            for (String s : collect) {
+                Path pathToDelete = Paths.get(currentDir.toAbsolutePath().toString(), s);
+                if (Files.isDirectory(pathToDelete)) {
+                    try {
+                        Files.walk(pathToDelete)
+                                .sorted(Comparator.reverseOrder())
+                                .map(Path::toFile)
+                                .forEach(File::delete);
+                    } catch (IOException e) {
+                        log.error(e.getMessage());
+                    }
+                } else {
+                    try {
+                        Files.delete(pathToDelete);
+                    } catch (IOException e) {
+                        log.error(e.getMessage());
+                    }
+                }
+
+
+            }
+
+        } else if (serverListView.getSelectionModel().getSelectedItem() != null) {
+
+            List<String> collect = serverListView.getSelectionModel().getSelectedItems()
+                    .stream()
+                    .map(FileInfo::getFilename)
+                    .collect(Collectors.toList());
+            for (String s : collect) {
+                network.send(new DeleteRequest(s));
+            }
+
+
+        }
+    }
+
+    public void renameFile(ActionEvent actionEvent) {
+        TextInputDialog dialog;
+        if (clientListView.getSelectionModel().getSelectedItem() != null) {
+            dialog = new TextInputDialog(clientListView.getSelectionModel().getSelectedItem().getFilename());
+            dialog.setTitle("Переименовать");
+            dialog.setHeaderText("Переименовать файл");
+            dialog.setContentText("Новое имя");
+            Optional<String> res = dialog.showAndWait();
+            if (res.isPresent()) {
+                try {
+                    Path paths = Paths.get(currentDir.toAbsolutePath().toString(), clientListView.getSelectionModel().getSelectedItem().getFilename());
+                    Files.move(paths, paths.resolveSibling(res.get()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (serverListView.getSelectionModel().getSelectedItem() != null) {
+            dialog = new TextInputDialog(serverListView.getSelectionModel().getSelectedItem().getFilename());
+            dialog.setTitle("Переименовать");
+            dialog.setHeaderText("Переименовать файл");
+            dialog.setContentText("Новое имя");
+            Optional<String> res = dialog.showAndWait();
+            network.send(new RenameRequest(serverListView.getSelectionModel().getSelectedItem().getFilename(), res.get()));
+        }
+    }
+
+    public void createDIr(ActionEvent actionEvent) throws IOException {
+        ChoiceDialog<String> choiceDialog = new ChoiceDialog<String>("В облаке", "На компьютере");
+        choiceDialog.setTitle("Создать папку");
+        choiceDialog.setContentText("Место создания");
+        choiceDialog.setHeaderText("Выберите место");
+        Optional<String> res = choiceDialog.showAndWait();
+        boolean place = false;
+
+        if (res.isPresent()) {
+            if (res.get().equals("В облаке")) {
+                place = false;
+
+            } else {
+                place = true;
+
+            }
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Создать папку");
+            dialog.setContentText("Имя");
+            dialog.setHeaderText("Введите имя");
+            Optional<String> s = dialog.showAndWait();
+            if (place) {
+                Files.createDirectory(Paths.get(currentDir.toAbsolutePath().toString(), s.get()));
+            } else {
+                network.send(new CreateDirRequest(s.get()));
+            }
+        }
+
+    }
+
+    public void showWarningMsg(String msg) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setContentText(msg);
+            alert.initModality(Modality.WINDOW_MODAL);
+            alert.initOwner(Start.stage);
+            alert.show();
+        });
+    }
 }
 
 
