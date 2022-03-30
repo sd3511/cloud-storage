@@ -37,7 +37,7 @@ public class Server {
                             );
                         }
                     });
-            ChannelFuture channelFuture = bootstrap.bind(8189).sync();
+            ChannelFuture channelFuture = bootstrap.bind(8188).sync();
             AuthUsers.getInstance().disconnectAll();
             log.info("Server started");
             channelFuture.channel().closeFuture().sync();

@@ -15,8 +15,10 @@ import io.netty.channel.socket.SocketChannel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -117,14 +119,22 @@ public class ServerObjectHandler extends SimpleChannelInboundHandler<Message> {
     }
 
 
-    private void deleteFile(Message message) {
+    private void deleteFile(Message message) throws IOException {
         DeleteRequest msg = (DeleteRequest)message;
         Path deletePath = Paths.get(currentDir.toAbsolutePath().toString(),msg.getFileName());
-        try {
-            Files.delete(deletePath);
-        } catch (IOException e) {
-            sc.writeAndFlush(new WarningMessage("Файл не удален"));
+        if (Files.isDirectory(deletePath)){
+            Files.walk(deletePath)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        }else {
+            try {
+                Files.delete(deletePath);
+            } catch (IOException e) {
+                sc.writeAndFlush(new WarningMessage("Файл не удален"));
+            }
         }
+
     }
 
     private void registration(Message message) {

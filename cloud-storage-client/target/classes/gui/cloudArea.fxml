@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox prefHeight="650.0" prefWidth="933.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="gui.CloudAreaController">
+    <MenuBar prefHeight="29.0" prefWidth="934.0" VBox.vgrow="NEVER">
+        <Menu mnemonicParsing="false" text="File">
+            <MenuItem mnemonicParsing="false" text="Quit" onAction="#exitAction"/>
+        </Menu>
+    </MenuBar>
+    <HBox spacing="5">
+        <Button  fx:id="btnSend" maxWidth="Infinity" onAction="#sendFile" text="Отправить" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnDelete" maxWidth="Infinity" onAction="#deleteFile" text="Удалить"  HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnRename" maxWidth="Infinity" onAction="#renameFile" text="Переименовать" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnCreateDir" maxWidth="Infinity" onAction="#createDIr" text="Создать папку"  HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnDownload" onAction="#download" maxWidth="Infinity" text="Скачать" HBox.hgrow="ALWAYS"/>
+    </HBox>
+    <HBox spacing="5" VBox.vgrow="ALWAYS">
+        <VBox HBox.hgrow="ALWAYS">
+            <HBox >
+                <Button fx:id="btnUpClient" layoutX="296.0" layoutY="69.0" prefHeight="18.0" prefWidth="160.0"
+                       text="Вверх" onAction="#goToParentClient" visible="false" HBox.hgrow="ALWAYS"/>
+
+            </HBox>
+            <ListView fx:id="clientListView" layoutX="14.0" layoutY="94.0" prefHeight="482.0" prefWidth="442.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
+        </VBox>
+        <VBox HBox.hgrow="ALWAYS" >
+            <HBox >
+
+                <Button fx:id="btnUpServer" layoutX="757.0" layoutY="69.0" prefHeight="18.0" prefWidth="160.0"
+                       text="Вверх" onAction="#goToParentServer" visible="false" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
+
+            </HBox>
+            <ListView  fx:id="serverListView" layoutX="477.0" layoutY="94.0" prefHeight="482.0" prefWidth="442.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </HBox>
+
+
+</VBox>

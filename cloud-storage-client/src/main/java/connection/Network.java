@@ -58,7 +58,7 @@ public class Network {
 
                             }
                         });
-                ChannelFuture channelFuture = bootstrap.connect("localhost", 8189).sync();
+                ChannelFuture channelFuture = bootstrap.connect("localhost", 8188).sync();
                 channelFuture.channel().closeFuture().sync();
 
             } catch (Exception e) {

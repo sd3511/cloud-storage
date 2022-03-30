@@ -36,7 +36,6 @@ public class ClientObjectHandler extends SimpleChannelInboundHandler<Message> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-        log.info("received a message from the server " + msg.getType().toString());
         switch (msg.getType()) {
 
             case LIST_REQUEST:
@@ -94,7 +93,6 @@ public class ClientObjectHandler extends SimpleChannelInboundHandler<Message> {
     private void sendNextPart(Message message) {
 
         NextFilePartToClient msg = (NextFilePartToClient) message;
-        log.info("sending the next part of the file " + msg.getFileName());
         Path path = Paths.get(cl.getCurrentDir().toString(), msg.getFileName());
         sc.writeAndFlush(cl.getNetwork().getFileUtils().sendNextPart(msg, path));
     }
@@ -103,7 +101,6 @@ public class ClientObjectHandler extends SimpleChannelInboundHandler<Message> {
     private void saveFilePart(Message message) {
 
         NextFilePart msg = (NextFilePart) message;
-        log.info("saving the next part of the file " + msg.getFileName());
         Path savePath = Paths.get(cl.getCurrentDir().toString(), msg.getFileName());
         int part = msg.getPart();
         int allParts = msg.getAllParts();
@@ -122,7 +119,6 @@ public class ClientObjectHandler extends SimpleChannelInboundHandler<Message> {
 
     private void saveFile(Message message) {
         FullFile msg = (FullFile) message;
-        log.info("saving full file " + msg.getFileName());
         Path savePath = Paths.get(cl.getCurrentDir().toString(), msg.getFileName());
         cl.getNetwork().getFileUtils().saveFile(savePath, msg.getData());
     }

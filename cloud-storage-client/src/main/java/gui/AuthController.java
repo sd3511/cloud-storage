@@ -16,12 +16,12 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lk.vivoxalabs.scenemanager.SceneManager;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+
 @Slf4j
 public class AuthController implements Initializable {
 

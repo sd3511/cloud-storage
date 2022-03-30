@@ -67,20 +67,20 @@ public class FileInfoListCell extends ListCell<FileInfo>  {
             fileName.setText(String.valueOf(item.getFilename()));
 
 
-            InputStream is = getClass().getResourceAsStream("/image/null.png");
+            InputStream is = getClass().getResourceAsStream("image/null.png");
             String extension = FilenameUtils.getExtension(item.getFilename());
             boolean isFolder = item.isFolder();
             if (isFolder) {
-                is = getClass().getResourceAsStream("/image/folder.png");
+                is = getClass().getResourceAsStream("image/folder.png");
             } else {
                 if (extension.equalsIgnoreCase("txt")) {
-                    is = getClass().getResourceAsStream("/image/txt.png");
+                    is = getClass().getResourceAsStream("image/txt.png");
                 } else if (extension.equalsIgnoreCase("png") || extension.equalsIgnoreCase("jpg")) {
-                    is = getClass().getResourceAsStream("/image/picture.png");
+                    is = getClass().getResourceAsStream("image/picture.png");
                 } else if (extension.equalsIgnoreCase("mp4") || extension.equalsIgnoreCase("mkv")) {
-                    is = getClass().getResourceAsStream("/image/vide.png");
+                    is = getClass().getResourceAsStream("image/vide.png");
                 } else if (extension.equalsIgnoreCase("docx") || extension.equalsIgnoreCase("doc")) {
-                    is = getClass().getResourceAsStream("/image/word.png");
+                    is = getClass().getResourceAsStream("image/word.png");
                 }
             }
 
